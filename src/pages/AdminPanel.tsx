@@ -1,0 +1,220 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/store/store";
+
+const AdminPanel = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { addMovie } = useStore();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    year: "",
+    genres: "",
+    quality: "HD", // Default to HD
+    type: "movie", // or 'series'
+    poster_url: "",
+    backdrop_url: "",
+    trailer_url: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin');
+    if (!isAdmin) {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Convert genres string to array
+      const genresArray = formData.genres.split(',').map(g => g.trim());
+      
+      console.log("Attempting to insert movie with data:", {
+        ...formData,
+        genres: genresArray,
+        year: parseInt(formData.year),
+        is_featured: true
+      });
+      
+      // Insert the new movie/series directly using SQL RPC
+      // This avoids potential RLS policy issues
+      const { data: movieData, error: movieError } = await supabase.rpc(
+        'admin_add_content',
+        {
+          p_title: formData.title,
+          p_description: formData.description,
+          p_year: parseInt(formData.year) || null,
+          p_genres: genresArray,
+          p_quality: formData.quality,
+          p_type: formData.type,
+          p_poster_url: formData.poster_url,
+          p_backdrop_url: formData.backdrop_url,
+          p_trailer_url: formData.trailer_url,
+          p_is_featured: true
+        }
+      );
+
+      if (movieError) {
+        console.error("Error inserting content:", movieError);
+        throw new Error(movieError.message || "Failed to add content");
+      }
+
+      // Get the ID from the returned data or use a fallback for notification
+      const contentId = (movieData && typeof movieData === 'number') ? movieData : 1;
+      
+      console.log("Movie added successfully with ID:", contentId);
+
+      // Send notification to all users about the new content
+      const { error: notifyError } = await supabase.rpc(
+        'notify_all_users', 
+        {
+          notification_title: `New ${formData.type} Added`,
+          notification_message: `Check out "${formData.title}" - now available to watch!`,
+          content_id: contentId,
+          content_type: formData.type
+        }
+      );
+
+      if (notifyError) {
+        console.error("Error sending notifications:", notifyError);
+        // Continue even if notification fails
+      }
+
+      // Create the movie object to add to the store
+      const newMovie = {
+        id: contentId,
+        title: formData.title,
+        year: parseInt(formData.year) || new Date().getFullYear(),
+        genres: genresArray as any[],
+        description: formData.description,
+        posterUrl: formData.poster_url,
+        backdropUrl: formData.backdrop_url,
+        quality: formData.quality as any,
+        isFeatured: true,
+        type: formData.type as any
+      };
+      
+      console.log("Adding movie to store:", newMovie);
+      
+      // Add the movie to the store so it appears immediately
+      addMovie(newMovie);
+
+      toast({
+        title: "Success",
+        description: `${formData.type === 'movie' ? 'Movie' : 'Series'} added successfully`,
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        year: "",
+        genres: "",
+        quality: "HD", // Reset to HD
+        type: "movie",
+        poster_url: "",
+        backdrop_url: "",
+        trailer_url: "",
+      });
+    } catch (error) {
+      console.error("Error in submission:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add content",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-netflix-black text-white p-8">
+      <div className="max-w-2xl mx-auto space-y-8">
+        <h1 className="text-3xl font-bold">Admin Panel</h1>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              placeholder="Title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+              required
+            />
+            <Input
+              placeholder="Year"
+              type="number"
+              value={formData.year}
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+            />
+            <Input
+              placeholder="Genres (comma-separated)"
+              value={formData.genres}
+              onChange={(e) => setFormData({ ...formData, genres: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+              required
+            />
+            <select
+              value={formData.quality}
+              onChange={(e) => setFormData({ ...formData, quality: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
+            >
+              <option value="HD">HD</option>
+              <option value="4K">4K</option>
+              <option value="UHD">UHD</option>
+            </select>
+            <Input
+              placeholder="Poster URL"
+              value={formData.poster_url}
+              onChange={(e) => setFormData({ ...formData, poster_url: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+            />
+            <Input
+              placeholder="Backdrop URL"
+              value={formData.backdrop_url}
+              onChange={(e) => setFormData({ ...formData, backdrop_url: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+            />
+            <Input
+              placeholder="Trailer URL"
+              value={formData.trailer_url}
+              onChange={(e) => setFormData({ ...formData, trailer_url: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray"
+            />
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
+            >
+              <option value="movie">Movie</option>
+              <option value="series">Series</option>
+            </select>
+          </div>
+          <Textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="bg-netflix-darkgray/50 border-netflix-darkgray min-h-[100px]"
+            required
+          />
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Adding..." : `Add ${formData.type === 'movie' ? 'Movie' : 'Series'}`}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AdminPanel;
