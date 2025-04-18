@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/store/store";
+import ImageUploader from "@/components/ImageUploader";
+import { ArrowLeft } from "lucide-react";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -36,6 +39,19 @@ const AdminPanel = () => {
     setIsSubmitting(true);
     
     try {
+      // Form validation
+      if (!formData.title || !formData.description || !formData.genres) {
+        throw new Error("Title, description, and genres are required fields");
+      }
+      
+      if (!formData.poster_url) {
+        throw new Error("Please upload a poster image");
+      }
+      
+      if (!formData.backdrop_url) {
+        throw new Error("Please upload a backdrop image");
+      }
+      
       // Convert genres string to array
       const genresArray = formData.genres.split(',').map(g => g.trim());
       
@@ -101,7 +117,8 @@ const AdminPanel = () => {
         backdropUrl: formData.backdrop_url,
         quality: formData.quality as any,
         isFeatured: true,
-        type: formData.type as any
+        type: formData.type as any,
+        likes: 0
       };
       
       console.log("Adding movie to store:", newMovie);
@@ -138,10 +155,29 @@ const AdminPanel = () => {
     }
   };
 
+  // Handle poster image upload
+  const handlePosterUploaded = (url: string) => {
+    setFormData(prev => ({ ...prev, poster_url: url }));
+  };
+
+  // Handle backdrop image upload
+  const handleBackdropUploaded = (url: string) => {
+    setFormData(prev => ({ ...prev, backdrop_url: url }));
+  };
+
   return (
     <div className="min-h-screen bg-netflix-black text-white p-8">
       <div className="max-w-2xl mx-auto space-y-8">
-        <h1 className="text-3xl font-bold">Admin Panel</h1>
+        <div className="flex items-center">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="mr-4 text-white hover:text-netflix-red transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-3xl font-bold">Admin Panel</h1>
+        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -174,18 +210,7 @@ const AdminPanel = () => {
               <option value="4K">4K</option>
               <option value="UHD">UHD</option>
             </select>
-            <Input
-              placeholder="Poster URL"
-              value={formData.poster_url}
-              onChange={(e) => setFormData({ ...formData, poster_url: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-            />
-            <Input
-              placeholder="Backdrop URL"
-              value={formData.backdrop_url}
-              onChange={(e) => setFormData({ ...formData, backdrop_url: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-            />
+            
             <Input
               placeholder="Trailer URL"
               value={formData.trailer_url}
@@ -201,6 +226,7 @@ const AdminPanel = () => {
               <option value="series">Series</option>
             </select>
           </div>
+          
           <Textarea
             placeholder="Description"
             value={formData.description}
@@ -208,6 +234,23 @@ const AdminPanel = () => {
             className="bg-netflix-darkgray/50 border-netflix-darkgray min-h-[100px]"
             required
           />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageUploader 
+              onImageUploaded={handlePosterUploaded}
+              label="Poster Image"
+              bucket="movieverse"
+              folderPath="posters"
+            />
+            
+            <ImageUploader 
+              onImageUploaded={handleBackdropUploaded}
+              label="Backdrop Image"
+              bucket="movieverse"
+              folderPath="backdrops"
+            />
+          </div>
+          
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Adding..." : `Add ${formData.type === 'movie' ? 'Movie' : 'Series'}`}
           </Button>

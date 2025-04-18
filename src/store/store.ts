@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 
 export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Comedy' | 'Crime' | 'Documentary' | 'Drama' | 'Family' | 'Fantasy' | 'Horror' | 'Sci-Fi' | 'Thriller' | 'History';
@@ -16,6 +17,7 @@ export interface Movie {
   quality: 'HD' | '4K' | 'UHD';
   isFeatured?: boolean;
   type: ContentType;
+  likes?: number;
 }
 
 interface StoreState {
@@ -26,20 +28,25 @@ interface StoreState {
     year: number | null;
     genre: Genre | null;
     rating: number | null;
-    sortBy: 'newest' | 'oldest' | 'top-rated' | 'alphabetical';
+    sortBy: 'newest' | 'oldest' | 'top-rated' | 'alphabetical' | 'most-liked';
   };
   searchQuery: string;
   cookieConsent: boolean | null;
+  latestMovies: Movie[];
+  topRatedMovies: Movie[];
   setActiveTab: (tab: ContentType) => void;
   setYearFilter: (year: number | null) => void;
   setGenreFilter: (genre: Genre | null) => void;
   setRatingFilter: (rating: number | null) => void;
-  setSortBy: (sortOption: 'newest' | 'oldest' | 'top-rated' | 'alphabetical') => void;
+  setSortBy: (sortOption: 'newest' | 'oldest' | 'top-rated' | 'alphabetical' | 'most-liked') => void;
   setSearchQuery: (query: string) => void;
   resetFilters: () => void;
   applyFilters: () => void;
   setCookieConsent: (consent: boolean) => void;
   addMovie: (movie: Omit<Movie, 'rating' | 'synopsis'>) => void;
+  likeMovie: (movieId: number) => void;
+  unlikeMovie: (movieId: number) => void;
+  updateMovieCategories: () => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -152,6 +159,8 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   searchQuery: '',
   cookieConsent: null,
+  latestMovies: [],
+  topRatedMovies: [],
   
   setActiveTab: (tab) => set({ activeTab: tab }),
   
@@ -202,6 +211,7 @@ export const useStore = create<StoreState>((set, get) => ({
       ...movie,
       rating: 7.0,
       synopsis: movie.description || '',
+      likes: 0,
     };
     
     const updatedMovies = [newMovie, ...state.movies];
@@ -209,9 +219,66 @@ export const useStore = create<StoreState>((set, get) => ({
     setTimeout(() => {
       console.log("Store: Re-applying filters after adding movie");
       get().applyFilters();
+      get().updateMovieCategories();
     }, 0);
     
     return { movies: updatedMovies };
+  }),
+  
+  likeMovie: (movieId) => set(state => {
+    const updatedMovies = state.movies.map(movie => 
+      movie.id === movieId
+        ? { ...movie, likes: (movie.likes || 0) + 1, rating: Math.min(10, (movie.rating || 7) + 0.1) }
+        : movie
+    );
+    
+    setTimeout(() => {
+      get().applyFilters();
+      get().updateMovieCategories();
+    }, 0);
+    
+    return { movies: updatedMovies };
+  }),
+  
+  unlikeMovie: (movieId) => set(state => {
+    const updatedMovies = state.movies.map(movie => 
+      movie.id === movieId
+        ? { 
+            ...movie, 
+            likes: Math.max(0, (movie.likes || 0) - 1),
+            rating: Math.max(0, (movie.rating || 7) - 0.1)
+          }
+        : movie
+    );
+    
+    setTimeout(() => {
+      get().applyFilters();
+      get().updateMovieCategories();
+    }, 0);
+    
+    return { movies: updatedMovies };
+  }),
+  
+  updateMovieCategories: () => set(state => {
+    const { movies, activeTab } = state;
+    
+    // Filter by active tab (movie or series)
+    const filteredByType = movies.filter(movie => movie.type === activeTab);
+    
+    // Get latest movies (by year, newest first)
+    const latest = [...filteredByType]
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 10);
+      
+    // Get top rated movies
+    const topRated = [...filteredByType]
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 10);
+      
+    return {
+      latestMovies: latest,
+      topRatedMovies: topRated
+    };
   }),
   
   applyFilters: () => {
@@ -255,6 +322,9 @@ export const useStore = create<StoreState>((set, get) => ({
       case 'alphabetical':
         filtered.sort((a, b) => a.title.localeCompare(b.title));
         break;
+      case 'most-liked':
+        filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        break;
     }
     
     console.log("Filtered movies count:", filtered.length);
@@ -267,6 +337,8 @@ export const useStore = create<StoreState>((set, get) => ({
   }
 }));
 
+// Initialize movie categories and apply filters
+useStore.getState().updateMovieCategories();
 useStore.getState().applyFilters();
 
 const storedConsent = localStorage.getItem('cookieConsent');
