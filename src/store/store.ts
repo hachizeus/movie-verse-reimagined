@@ -2,7 +2,8 @@
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
-export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Comedy' | 'Crime' | 'Documentary' | 'Drama' | 'Family' | 'Fantasy' | 'Horror' | 'Sci-Fi' | 'Thriller' | 'History';
+// Change from enum to string union type to make it more flexible
+export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Comedy' | 'Crime' | 'Documentary' | 'Drama' | 'Family' | 'Fantasy' | 'Horror' | 'Sci-Fi' | 'Thriller' | 'History' | string;
 export type ContentType = 'movie' | 'series';
 
 export interface Movie {
@@ -15,7 +16,7 @@ export interface Movie {
   description?: string;
   posterUrl: string;
   backdropUrl: string;
-  quality: 'HD' | '4K' | 'UHD';
+  quality: 'HD' | '4K' | 'UHD' | string;
   isFeatured?: boolean;
   type: ContentType;
   likes?: number;

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useStore } from "@/store/store";
+import { useStore, Genre, ContentType } from "@/store/store";
 import ImageUploader from "@/components/ImageUploader";
 import { ArrowLeft } from "lucide-react";
 
@@ -53,7 +52,7 @@ const AdminPanel = () => {
       }
       
       // Convert genres string to array
-      const genresArray = formData.genres.split(',').map(g => g.trim());
+      const genresArray = formData.genres.split(',').map(g => g.trim()) as Genre[];
       
       console.log("Attempting to insert movie with data:", {
         ...formData,
@@ -115,9 +114,9 @@ const AdminPanel = () => {
         synopsis: formData.description, // Set synopsis to description
         posterUrl: formData.poster_url,
         backdropUrl: formData.backdrop_url,
-        quality: formData.quality,
+        quality: formData.quality as 'HD' | '4K' | 'UHD',
         isFeatured: true,
-        type: formData.type,
+        type: formData.type as ContentType,
         likes: 0,
         rating: 7.0, // Default rating
         trailer_url: formData.trailer_url,
