@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 
 export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Comedy' | 'Crime' | 'Documentary' | 'Drama' | 'Family' | 'Fantasy' | 'Horror' | 'Sci-Fi' | 'Thriller' | 'History';
@@ -18,6 +17,7 @@ export interface Movie {
   isFeatured?: boolean;
   type: ContentType;
   likes?: number;
+  trailer_url?: string;
 }
 
 interface StoreState {
