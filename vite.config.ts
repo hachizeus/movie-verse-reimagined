@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/your-repo-name/' : '/',
+  base: mode === 'production' ? '/movie-verse-reimagined/' : '/',
   server: {
     allowedHosts: [
       '78cc13b2-8e7c-4380-be6f-a95f7c790474.lovableproject.com'
