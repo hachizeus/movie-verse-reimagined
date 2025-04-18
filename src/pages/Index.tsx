@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
@@ -11,8 +10,10 @@ import CookieConsent from "@/components/CookieConsent";
 import AuthModal from "@/components/AuthModal";
 import SocialShareModal from "@/components/SocialShareModal";
 import { useStore } from "@/store/store";
+import { useLocation } from "react-router-dom";
 
 const Index = () => {
+  const location = useLocation();
   const { movies, filteredMovies, latestMovies, topRatedMovies, applyFilters, updateMovieCategories, fetchMoviesFromSupabase } = useStore();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -37,13 +38,14 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
+  // Fetch movies whenever the component mounts or location changes
   useEffect(() => {
-    // Fetch movies on initial load, then apply filters and update categories
+    console.log("Index: Fetching movies from Supabase");
     fetchMoviesFromSupabase().then(() => {
       applyFilters();
       updateMovieCategories();
     });
-  }, [fetchMoviesFromSupabase, applyFilters, updateMovieCategories]);
+  }, [fetchMoviesFromSupabase, applyFilters, updateMovieCategories, location]);
   
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -80,24 +82,13 @@ const Index = () => {
     }
   }, [shareModalDismissCount]);
   
-  // Handle social share modal close
-  const handleShareModalOpenChange = (open: boolean) => {
-    if (!open && shareModalOpen) {
-      // User closed the modal
-      const newCount = shareModalDismissCount + 1;
-      setShareModalDismissCount(newCount);
-      localStorage.setItem('shareModalDismissCount', newCount.toString());
-    }
-    setShareModalOpen(open);
-  };
-  
   // Find the featured movie (marked as featured or first movie)
   const featuredMovie = movies.find(movie => movie.isFeatured) || movies[0];
   
   return (
     <div className="min-h-screen bg-netflix-black text-white">
       <Navbar />
-      <HeroSection movie={featuredMovie} />
+      {featuredMovie && <HeroSection movie={featuredMovie} />}
       <FilterSection />
       
       <div className="container mx-auto px-4 md:px-6 py-8">
@@ -125,6 +116,17 @@ const Index = () => {
       <SocialShareModal open={shareModalOpen} onOpenChange={handleShareModalOpenChange} />
     </div>
   );
+  
+  // Handle social share modal close
+  function handleShareModalOpenChange(open: boolean) {
+    if (!open && shareModalOpen) {
+      // User closed the modal
+      const newCount = shareModalDismissCount + 1;
+      setShareModalDismissCount(newCount);
+      localStorage.setItem('shareModalDismissCount', newCount.toString());
+    }
+    setShareModalOpen(open);
+  }
 };
 
 export default Index;

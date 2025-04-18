@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { ArrowLeft } from "lucide-react";
 const AdminPanel = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addMovie } = useStore();
+  const { addMovie, fetchMoviesFromSupabase } = useStore();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -126,6 +127,9 @@ const AdminPanel = () => {
       
       // Add the movie to the store so it appears immediately
       addMovie(newMovie);
+      
+      // Fetch movies from Supabase to ensure we have the latest data
+      await fetchMoviesFromSupabase();
 
       toast({
         title: "Success",
@@ -145,11 +149,8 @@ const AdminPanel = () => {
         trailer_url: "",
       });
       
-      // Force reload movies by refreshing the page after a short delay
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
-      
+      // Navigate to the home page after adding the movie
+      navigate('/');
     } catch (error) {
       console.error("Error in submission:", error);
       toast({
