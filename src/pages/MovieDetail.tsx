@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Play, ChevronLeft, Download, Plus, ThumbsUp, Share2 } from "lucide-react";
