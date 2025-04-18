@@ -1,4 +1,6 @@
+
 import { create } from 'zustand';
+import { supabase } from "@/integrations/supabase/client";
 
 export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Comedy' | 'Crime' | 'Documentary' | 'Drama' | 'Family' | 'Fantasy' | 'Horror' | 'Sci-Fi' | 'Thriller' | 'History';
 export type ContentType = 'movie' | 'series';
@@ -43,10 +45,11 @@ interface StoreState {
   resetFilters: () => void;
   applyFilters: () => void;
   setCookieConsent: (consent: boolean) => void;
-  addMovie: (movie: Omit<Movie, 'rating' | 'synopsis'>) => void;
+  addMovie: (movie: Movie) => void;
   likeMovie: (movieId: number) => void;
   unlikeMovie: (movieId: number) => void;
   updateMovieCategories: () => void;
+  fetchMoviesFromSupabase: () => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -207,11 +210,12 @@ export const useStore = create<StoreState>((set, get) => ({
   addMovie: (movie) => set(state => {
     console.log("Store: Adding new movie", movie);
     
+    // Make sure all required fields are set
     const newMovie: Movie = {
       ...movie,
-      rating: 7.0,
-      synopsis: movie.description || '',
-      likes: 0,
+      rating: movie.rating || 7.0,
+      synopsis: movie.synopsis || movie.description || '',
+      likes: movie.likes || 0,
     };
     
     const updatedMovies = [newMovie, ...state.movies];
@@ -331,17 +335,68 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ filteredMovies: filtered });
   },
   
+  fetchMoviesFromSupabase: async () => {
+    try {
+      console.log("Fetching movies from Supabase...");
+      const { data, error } = await supabase
+        .from('movies')
+        .select('*');
+        
+      if (error) {
+        console.error("Error fetching movies:", error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        console.log("Fetched", data.length, "movies from Supabase");
+        
+        // Transform the data to match our Movie interface
+        const transformedMovies: Movie[] = data.map(movie => ({
+          id: movie.id,
+          title: movie.title,
+          year: movie.year || new Date().getFullYear(),
+          rating: movie.rating || 7.0,
+          genres: movie.genres || [],
+          synopsis: movie.description || '',
+          description: movie.description || '',
+          posterUrl: movie.poster_url || '',
+          backdropUrl: movie.backdrop_url || '',
+          quality: (movie.quality as 'HD' | '4K' | 'UHD') || 'HD',
+          isFeatured: movie.is_featured || false,
+          type: (movie.type as ContentType) || 'movie',
+          likes: 0,
+          trailer_url: movie.trailer_url || '',
+        }));
+        
+        set({ movies: transformedMovies });
+        setTimeout(() => {
+          get().applyFilters();
+          get().updateMovieCategories();
+        }, 0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch movies:", err);
+    }
+  },
+  
   setCookieConsent: (consent) => {
     localStorage.setItem('cookieConsent', consent ? 'true' : 'false');
     set({ cookieConsent: consent });
   }
 }));
 
-// Initialize movie categories and apply filters
-useStore.getState().updateMovieCategories();
-useStore.getState().applyFilters();
+// Initialize by fetching movies from Supabase
+const initializeStore = async () => {
+  await useStore.getState().fetchMoviesFromSupabase();
+  
+  // Initialize movie categories and apply filters
+  useStore.getState().updateMovieCategories();
+  useStore.getState().applyFilters();
+  
+  const storedConsent = localStorage.getItem('cookieConsent');
+  if (storedConsent) {
+    useStore.getState().setCookieConsent(storedConsent === 'true');
+  }
+};
 
-const storedConsent = localStorage.getItem('cookieConsent');
-if (storedConsent) {
-  useStore.getState().setCookieConsent(storedConsent === 'true');
-}
+initializeStore();

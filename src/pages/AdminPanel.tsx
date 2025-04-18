@@ -63,7 +63,6 @@ const AdminPanel = () => {
       });
       
       // Insert the new movie/series directly using SQL RPC
-      // This avoids potential RLS policy issues
       const { data: movieData, error: movieError } = await supabase.rpc(
         'admin_add_content',
         {
@@ -111,14 +110,17 @@ const AdminPanel = () => {
         id: contentId,
         title: formData.title,
         year: parseInt(formData.year) || new Date().getFullYear(),
-        genres: genresArray as any[],
+        genres: genresArray,
         description: formData.description,
+        synopsis: formData.description, // Set synopsis to description
         posterUrl: formData.poster_url,
         backdropUrl: formData.backdrop_url,
-        quality: formData.quality as any,
+        quality: formData.quality,
         isFeatured: true,
-        type: formData.type as any,
-        likes: 0
+        type: formData.type,
+        likes: 0,
+        rating: 7.0, // Default rating
+        trailer_url: formData.trailer_url,
       };
       
       console.log("Adding movie to store:", newMovie);
@@ -143,6 +145,12 @@ const AdminPanel = () => {
         backdrop_url: "",
         trailer_url: "",
       });
+      
+      // Force reload movies by refreshing the page after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+      
     } catch (error) {
       console.error("Error in submission:", error);
       toast({

@@ -13,7 +13,7 @@ import SocialShareModal from "@/components/SocialShareModal";
 import { useStore } from "@/store/store";
 
 const Index = () => {
-  const { movies, filteredMovies, latestMovies, topRatedMovies, applyFilters, updateMovieCategories } = useStore();
+  const { movies, filteredMovies, latestMovies, topRatedMovies, applyFilters, updateMovieCategories, fetchMoviesFromSupabase } = useStore();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareModalDismissCount, setShareModalDismissCount] = useState(() => {
@@ -38,10 +38,12 @@ const Index = () => {
   };
   
   useEffect(() => {
-    // Apply filters on initial load and update movie categories
-    applyFilters();
-    updateMovieCategories();
-  }, [applyFilters, updateMovieCategories]);
+    // Fetch movies on initial load, then apply filters and update categories
+    fetchMoviesFromSupabase().then(() => {
+      applyFilters();
+      updateMovieCategories();
+    });
+  }, [fetchMoviesFromSupabase, applyFilters, updateMovieCategories]);
   
   // Reset to page 1 when filters change
   useEffect(() => {
