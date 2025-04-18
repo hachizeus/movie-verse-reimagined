@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,9 @@ import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
+
+// Get the base URL from Vite's import.meta.env
+const baseUrl = import.meta.env.BASE_URL || '/';
 
 // Add Content Security Policy headers
 const addSecurityHeaders = () => {
@@ -33,7 +37,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={baseUrl}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
