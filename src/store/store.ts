@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -357,14 +356,14 @@ export const useStore = create<StoreState>((set, get) => ({
           title: movie.title,
           year: movie.year || new Date().getFullYear(),
           rating: movie.rating || 7.0,
-          genres: movie.genres || [],
+          genres: Array.isArray(movie.genres) ? movie.genres : [],
           synopsis: movie.description || '',
           description: movie.description || '',
           posterUrl: movie.poster_url || '',
           backdropUrl: movie.backdrop_url || '',
           quality: (movie.quality as 'HD' | '4K' | 'UHD') || 'HD',
           isFeatured: movie.is_featured || false,
-          type: 'movie' as ContentType, // Default to 'movie' if type is not specified
+          type: (movie.type as ContentType) || 'movie', // Provide default 'movie' if type is not specified
           likes: 0,
           trailer_url: movie.trailer_url || '',
         }));
@@ -374,6 +373,8 @@ export const useStore = create<StoreState>((set, get) => ({
           get().applyFilters();
           get().updateMovieCategories();
         }, 0);
+      } else {
+        console.log("No movies found in Supabase, using default movies");
       }
     } catch (err) {
       console.error("Failed to fetch movies:", err);

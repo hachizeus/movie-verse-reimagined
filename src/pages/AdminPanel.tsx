@@ -59,7 +59,8 @@ const AdminPanel = () => {
         ...formData,
         genres: genresArray,
         year: parseInt(formData.year),
-        is_featured: true
+        is_featured: true,
+        type: formData.type // Make sure type is included in the Supabase data
       });
       
       // Insert the new movie/series directly using SQL RPC
