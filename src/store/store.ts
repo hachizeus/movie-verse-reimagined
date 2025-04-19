@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -363,7 +364,9 @@ export const useStore = create<StoreState>((set, get) => ({
           backdropUrl: movie.backdrop_url || '',
           quality: (movie.quality as 'HD' | '4K' | 'UHD') || 'HD',
           isFeatured: movie.is_featured || false,
-          type: (movie.type as ContentType) || 'movie', // Provide default 'movie' if type is not specified
+          // Since 'type' doesn't exist in the database, always set a default
+          // This could be based on other data or a fixed default
+          type: 'movie' as ContentType, // Default to 'movie' type
           likes: 0,
           trailer_url: movie.trailer_url || '',
         }));

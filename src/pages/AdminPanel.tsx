@@ -60,7 +60,7 @@ const AdminPanel = () => {
         genres: genresArray,
         year: parseInt(formData.year),
         is_featured: true,
-        type: formData.type // Make sure type is included in the Supabase data
+        type: formData.type as ContentType // Explicitly cast to ContentType
       });
       
       // Insert the new movie/series directly using SQL RPC
@@ -72,7 +72,7 @@ const AdminPanel = () => {
           p_year: parseInt(formData.year) || null,
           p_genres: genresArray,
           p_quality: formData.quality,
-          p_type: formData.type,
+          p_type: formData.type, // Make sure to pass the type to the database
           p_poster_url: formData.poster_url,
           p_backdrop_url: formData.backdrop_url,
           p_trailer_url: formData.trailer_url,
@@ -118,7 +118,7 @@ const AdminPanel = () => {
         backdropUrl: formData.backdrop_url,
         quality: formData.quality as 'HD' | '4K' | 'UHD',
         isFeatured: true,
-        type: formData.type as ContentType,
+        type: formData.type as ContentType, // Explicitly cast to ContentType
         likes: 0,
         rating: 7.0, // Default rating
         trailer_url: formData.trailer_url,
