@@ -81,9 +81,12 @@ const ImageUploader = ({
       const { data: urlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);
-
+      
+      const publicUrl = urlData.publicUrl;
+      console.log("Poster URL updated:", publicUrl);
+      
       // Pass the URL to the parent component
-      onImageUploaded(urlData.publicUrl);
+      onImageUploaded(publicUrl);
       
       toast({
         title: "Upload successful",
@@ -143,7 +146,7 @@ const ImageUploader = ({
           <img
             src={previewUrl}
             alt="Preview"
-            className="h-20 object-cover border border-netflix-darkgray"
+            className="h-20 object-cover border border-netflix-darkgray rounded"
           />
         </div>
       )}

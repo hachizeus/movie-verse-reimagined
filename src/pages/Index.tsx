@@ -12,6 +12,7 @@ import AuthModal from "@/components/AuthModal";
 import SocialShareModal from "@/components/SocialShareModal";
 import { useStore } from "@/store/store";
 import { useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const location = useLocation();
@@ -102,18 +103,25 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-netflix-black text-white">
       <Navbar />
-      {featuredMovie && <HeroSection movie={featuredMovie} />}
-      <FilterSection />
       
-      <div className="container mx-auto px-4 md:px-6 py-8">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-netflix-lightgray">Loading movies...</p>
-          </div>
-        ) : (
-          <>
-            <MovieCarousel title="Latest Posted Movies" movies={latestMovies} />
-            <MovieCarousel title="Most Rated Movies" movies={topRatedMovies} />
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-screen">
+          <Loader2 className="h-10 w-10 animate-spin text-netflix-red" />
+          <span className="ml-2 text-xl">Loading movies...</span>
+        </div>
+      ) : (
+        <>
+          {featuredMovie && <HeroSection movie={featuredMovie} />}
+          <FilterSection />
+          
+          <div className="container mx-auto px-4 md:px-6 py-8">
+            {latestMovies.length > 0 && (
+              <MovieCarousel title="Latest Posted Movies" movies={latestMovies} />
+            )}
+            
+            {topRatedMovies.length > 0 && (
+              <MovieCarousel title="Most Rated Movies" movies={topRatedMovies} />
+            )}
             
             <h2 className="text-2xl font-bold mb-4 mt-12">All Movies</h2>
             <MovieGrid movies={currentMovies} />
@@ -125,9 +133,15 @@ const Index = () => {
                 onPageChange={handlePageChange} 
               />
             )}
-          </>
-        )}
-      </div>
+            
+            {filteredMovies.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                <p className="text-netflix-lightgray text-lg">No movies found. Try changing your filters or add new movies.</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
       
       <div ref={footerRef}>
         <Footer />
