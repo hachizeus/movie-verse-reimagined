@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -364,9 +363,7 @@ export const useStore = create<StoreState>((set, get) => ({
           backdropUrl: movie.backdrop_url || '',
           quality: (movie.quality as 'HD' | '4K' | 'UHD') || 'HD',
           isFeatured: movie.is_featured || false,
-          // Since 'type' doesn't exist in the database, always set a default
-          // This could be based on other data or a fixed default
-          type: 'movie' as ContentType, // Default to 'movie' type
+          type: (movie.type as ContentType) || 'movie',
           likes: 0,
           trailer_url: movie.trailer_url || '',
         }));
@@ -377,7 +374,7 @@ export const useStore = create<StoreState>((set, get) => ({
           get().updateMovieCategories();
         }, 0);
       } else {
-        console.log("No movies found in Supabase, using default movies");
+        console.log("No movies found in Supabase");
       }
     } catch (err) {
       console.error("Failed to fetch movies:", err);

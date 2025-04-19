@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,8 @@ const AdminPanel = () => {
     description: "",
     year: "",
     genres: "",
-    quality: "HD", // Default to HD
-    type: "movie", // or 'series'
+    quality: "HD",
+    type: "movie",
     poster_url: "",
     backdrop_url: "",
     trailer_url: "",
@@ -39,7 +38,6 @@ const AdminPanel = () => {
     setIsSubmitting(true);
     
     try {
-      // Form validation
       if (!formData.title || !formData.description || !formData.genres) {
         throw new Error("Title, description, and genres are required fields");
       }
@@ -52,7 +50,6 @@ const AdminPanel = () => {
         throw new Error("Please upload a backdrop image");
       }
       
-      // Convert genres string to array
       const genresArray = formData.genres.split(',').map(g => g.trim()) as Genre[];
       
       console.log("Attempting to insert movie with data:", {
@@ -60,10 +57,9 @@ const AdminPanel = () => {
         genres: genresArray,
         year: parseInt(formData.year),
         is_featured: true,
-        type: formData.type as ContentType // Explicitly cast to ContentType
+        type: formData.type as ContentType
       });
       
-      // Insert the new movie/series directly using SQL RPC
       const { data: movieData, error: movieError } = await supabase.rpc(
         'admin_add_content',
         {
@@ -72,7 +68,7 @@ const AdminPanel = () => {
           p_year: parseInt(formData.year) || null,
           p_genres: genresArray,
           p_quality: formData.quality,
-          p_type: formData.type, // Make sure to pass the type to the database
+          p_type: formData.type,
           p_poster_url: formData.poster_url,
           p_backdrop_url: formData.backdrop_url,
           p_trailer_url: formData.trailer_url,
@@ -85,12 +81,10 @@ const AdminPanel = () => {
         throw new Error(movieError.message || "Failed to add content");
       }
 
-      // Get the ID from the returned data or use a fallback for notification
       const contentId = (movieData && typeof movieData === 'number') ? movieData : 1;
       
       console.log("Movie added successfully with ID:", contentId);
 
-      // Send notification to all users about the new content
       const { error: notifyError } = await supabase.rpc(
         'notify_all_users', 
         {
@@ -103,33 +97,29 @@ const AdminPanel = () => {
 
       if (notifyError) {
         console.error("Error sending notifications:", notifyError);
-        // Continue even if notification fails
       }
 
-      // Create the movie object to add to the store
       const newMovie = {
         id: contentId,
         title: formData.title,
         year: parseInt(formData.year) || new Date().getFullYear(),
         genres: genresArray,
         description: formData.description,
-        synopsis: formData.description, // Set synopsis to description
+        synopsis: formData.description,
         posterUrl: formData.poster_url,
         backdropUrl: formData.backdrop_url,
         quality: formData.quality as 'HD' | '4K' | 'UHD',
         isFeatured: true,
-        type: formData.type as ContentType, // Explicitly cast to ContentType
+        type: formData.type as ContentType,
         likes: 0,
-        rating: 7.0, // Default rating
+        rating: 7.0,
         trailer_url: formData.trailer_url,
       };
       
       console.log("Adding movie to store:", newMovie);
       
-      // Add the movie to the store so it appears immediately
       addMovie(newMovie);
       
-      // Fetch movies from Supabase to ensure we have the latest data
       await fetchMoviesFromSupabase();
 
       toast({
@@ -137,20 +127,18 @@ const AdminPanel = () => {
         description: `${formData.type === 'movie' ? 'Movie' : 'Series'} added successfully`,
       });
 
-      // Reset form
       setFormData({
         title: "",
         description: "",
         year: "",
         genres: "",
-        quality: "HD", // Reset to HD
+        quality: "HD",
         type: "movie",
         poster_url: "",
         backdrop_url: "",
         trailer_url: "",
       });
       
-      // Navigate to the home page after adding the movie
       navigate('/');
     } catch (error) {
       console.error("Error in submission:", error);
@@ -164,12 +152,10 @@ const AdminPanel = () => {
     }
   };
 
-  // Handle poster image upload
   const handlePosterUploaded = (url: string) => {
     setFormData(prev => ({ ...prev, poster_url: url }));
   };
 
-  // Handle backdrop image upload
   const handleBackdropUploaded = (url: string) => {
     setFormData(prev => ({ ...prev, backdrop_url: url }));
   };
