@@ -8,6 +8,7 @@ import MovieCard from "@/components/MovieCard";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import SocialShareModal from "@/components/SocialShareModal";
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,14 +18,14 @@ const MovieDetail = () => {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
   const [isLiked, setIsLiked] = useState(false);
-  
+  const [showShareModal, setShowShareModal] = useState(false);
+
   useEffect(() => {
     if (id) {
       const foundMovie = movies.find(m => m.id === parseInt(id));
       if (foundMovie) {
         setMovie(foundMovie);
         
-        // Find similar movies (same genre)
         const similar = movies
           .filter(m => 
             m.id !== foundMovie.id && 
@@ -34,7 +35,6 @@ const MovieDetail = () => {
         
         setSimilarMovies(similar);
         
-        // Check if user has liked this movie
         const checkLikeStatus = async () => {
           try {
             const { data: session } = await supabase.auth.getSession();
@@ -96,14 +96,11 @@ const MovieDetail = () => {
         return;
       }
       
-      const userId = session.session.user.id;
-      
       if (isLiked) {
-        // Unlike movie
         await supabase
           .from('favorites')
           .delete()
-          .eq('user_id', userId)
+          .eq('user_id', session.session.user.id)
           .eq('movie_id', movie.id);
           
         unlikeMovie(movie.id);
@@ -113,11 +110,10 @@ const MovieDetail = () => {
           description: `You've removed "${movie.title}" from your favorites`,
         });
       } else {
-        // Like movie
         await supabase
           .from('favorites')
           .insert([
-            { user_id: userId, movie_id: movie.id }
+            { user_id: session.session.user.id, movie_id: movie.id }
           ]);
           
         likeMovie(movie.id);
@@ -149,7 +145,6 @@ const MovieDetail = () => {
     <div className="min-h-screen bg-netflix-black text-white">
       <Navbar />
       
-      {/* Hero Banner */}
       <div className="relative w-full h-[60vh]">
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -170,10 +165,8 @@ const MovieDetail = () => {
         </div>
       </div>
       
-      {/* Content */}
       <div className="container mx-auto px-4 md:px-6 -mt-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* Poster */}
           <div className="md:col-span-3">
             <div className="aspect-[2/3] overflow-hidden shadow-xl">
               <img 
@@ -184,7 +177,6 @@ const MovieDetail = () => {
             </div>
           </div>
           
-          {/* Details */}
           <div className="md:col-span-9">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">{movie.title}</h1>
             
@@ -239,12 +231,16 @@ const MovieDetail = () => {
                 <ThumbsUp className="h-5 w-5" />
               </Button>
               
-              <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 rounded-full p-2" size="icon">
+              <Button 
+                variant="outline" 
+                className="border-white/30 text-white hover:bg-white/10 rounded-full p-2" 
+                size="icon"
+                onClick={() => setShowShareModal(true)}
+              >
                 <Share2 className="h-5 w-5" />
               </Button>
             </div>
             
-            {/* Related Movies */}
             <div className="pt-6 border-t border-netflix-darkgray">
               <h3 className="text-xl font-bold mb-4">Similar Movies</h3>
               
@@ -261,6 +257,11 @@ const MovieDetail = () => {
       <div className="mt-16">
         <Footer />
       </div>
+
+      <SocialShareModal 
+        open={showShareModal} 
+        onOpenChange={setShowShareModal} 
+      />
     </div>
   );
 };

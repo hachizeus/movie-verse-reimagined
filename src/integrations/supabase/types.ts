@@ -99,6 +99,7 @@ export type Database = {
           rating: number | null
           title: string
           trailer_url: string | null
+          type: string | null
           year: number | null
         }
         Insert: {
@@ -112,6 +113,7 @@ export type Database = {
           rating?: number | null
           title: string
           trailer_url?: string | null
+          type?: string | null
           year?: number | null
         }
         Update: {
@@ -125,6 +127,7 @@ export type Database = {
           rating?: number | null
           title?: string
           trailer_url?: string | null
+          type?: string | null
           year?: number | null
         }
         Relationships: []
