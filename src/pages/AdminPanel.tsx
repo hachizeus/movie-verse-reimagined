@@ -221,7 +221,7 @@ const AdminPanel = () => {
             />
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as ContentType })}
               className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
             >
               <option value="movie">Movie</option>
