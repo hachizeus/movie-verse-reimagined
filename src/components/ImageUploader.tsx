@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +10,26 @@ interface ImageUploaderProps {
   label: string;
   bucket: string;
   folderPath: string;
+  initialValue?: string;
 }
 
-const ImageUploader = ({ onImageUploaded, label, bucket, folderPath }: ImageUploaderProps) => {
+const ImageUploader = ({ 
+  onImageUploaded, 
+  label, 
+  bucket, 
+  folderPath,
+  initialValue
+}: ImageUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialValue || null);
   const { toast } = useToast();
+
+  // Update preview when initialValue changes
+  useEffect(() => {
+    if (initialValue) {
+      setPreviewUrl(initialValue);
+    }
+  }, [initialValue]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,6 +82,7 @@ const ImageUploader = ({ onImageUploaded, label, bucket, folderPath }: ImageUplo
         .from(bucket)
         .getPublicUrl(data.path);
 
+      // Pass the URL to the parent component
       onImageUploaded(urlData.publicUrl);
       
       toast({
@@ -81,6 +96,8 @@ const ImageUploader = ({ onImageUploaded, label, bucket, folderPath }: ImageUplo
         description: error instanceof Error ? error.message : "Failed to upload image",
         variant: "destructive",
       });
+      // Reset preview if upload fails
+      setPreviewUrl(initialValue || null);
     } finally {
       setIsUploading(false);
     }

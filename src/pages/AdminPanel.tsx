@@ -82,7 +82,11 @@ const AdminPanel = () => {
         throw new Error(movieError.message || "Failed to add content");
       }
 
-      const contentId = (movieData && typeof movieData === 'number') ? movieData : 1;
+      const contentId = (movieData && typeof movieData === 'number') ? movieData : null;
+      
+      if (!contentId) {
+        throw new Error("Failed to get content ID from database");
+      }
       
       console.log("Movie added successfully with ID:", contentId);
 
@@ -160,10 +164,12 @@ const AdminPanel = () => {
   };
 
   const handlePosterUploaded = (url: string) => {
+    console.log("Poster URL updated:", url);
     setFormData(prev => ({ ...prev, poster_url: url }));
   };
 
   const handleBackdropUploaded = (url: string) => {
+    console.log("Backdrop URL updated:", url);
     setFormData(prev => ({ ...prev, backdrop_url: url }));
   };
 
@@ -243,6 +249,7 @@ const AdminPanel = () => {
               label="Poster Image"
               bucket="movieverse"
               folderPath="posters"
+              initialValue={formData.poster_url}
             />
             
             <ImageUploader 
@@ -250,6 +257,7 @@ const AdminPanel = () => {
               label="Backdrop Image"
               bucket="movieverse"
               folderPath="backdrops"
+              initialValue={formData.backdrop_url}
             />
           </div>
           

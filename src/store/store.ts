@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,6 +37,7 @@ interface StoreState {
   cookieConsent: boolean | null;
   latestMovies: Movie[];
   topRatedMovies: Movie[];
+  isLoading: boolean;
   setActiveTab: (tab: ContentType) => void;
   setYearFilter: (year: number | null) => void;
   setGenreFilter: (genre: Genre | null) => void;
@@ -53,105 +55,7 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>((set, get) => ({
-  movies: [
-    {
-      id: 1,
-      title: 'Alice Through the Looking Glass',
-      year: 2016,
-      rating: 6.5,
-      genres: ['Family', 'Fantasy', 'Adventure'],
-      synopsis: 'Alice returns to the whimsical world of Wonderland and travels back in time to help the Mad Hatter.',
-      posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?auto=format&fit=crop&q=80',
-      quality: '4K',
-      isFeatured: true,
-      type: 'movie'
-    },
-    {
-      id: 2,
-      title: 'X-Men: Apocalypse',
-      year: 2016,
-      rating: 7.1,
-      genres: ['Action', 'Adventure', 'Sci-Fi'],
-      synopsis: 'After the re-emergence of the world\'s first mutant, the X-Men must unite to defeat his extinction level plan.',
-      posterUrl: 'https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1624462966581-6eb1f32560d6?auto=format&fit=crop&q=80',
-      quality: 'UHD',
-      type: 'movie'
-    },
-    {
-      id: 3,
-      title: 'The Jungle Book',
-      year: 2016,
-      rating: 7.6,
-      genres: ['Adventure', 'Drama', 'Family'],
-      synopsis: 'After a threat from the tiger Shere Khan forces him to flee the jungle, a man-cub named Mowgli embarks on a journey of self discovery.',
-      posterUrl: 'https://images.unsplash.com/photo-1557683311-eac922347aa1?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&q=80',
-      quality: 'HD',
-      type: 'movie'
-    },
-    {
-      id: 4,
-      title: 'Captain America: Civil War',
-      year: 2016,
-      rating: 7.8,
-      genres: ['Action', 'Adventure', 'Sci-Fi'],
-      synopsis: 'Political involvement in the Avengers\' affairs causes a rift between Captain America and Iron Man.',
-      posterUrl: 'https://images.unsplash.com/photo-1635863138275-d9b33299680b?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1569701813229-33284b643e3c?auto=format&fit=crop&q=80',
-      quality: '4K',
-      type: 'movie'
-    },
-    {
-      id: 5,
-      title: 'Stranger Things',
-      year: 2016,
-      rating: 8.5,
-      genres: ['Drama', 'Fantasy', 'Horror'],
-      synopsis: 'When a young boy disappears, his mother, a police chief, and his friends must confront terrifying supernatural forces in order to get him back.',
-      posterUrl: 'https://images.unsplash.com/photo-1580130379624-3a069adbf713?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1461696114087-397271a7aedc?auto=format&fit=crop&q=80',
-      quality: 'UHD',
-      type: 'series'
-    },
-    {
-      id: 6,
-      title: 'The Crown',
-      year: 2016,
-      rating: 8.7,
-      genres: ['Drama', 'History'],
-      synopsis: 'Follows the political rivalries and romance of Queen Elizabeth II\'s reign and the events that shaped the second half of the twentieth century.',
-      posterUrl: 'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80',
-      quality: '4K',
-      type: 'series'
-    },
-    {
-      id: 7,
-      title: 'Narcos',
-      year: 2015,
-      rating: 8.8,
-      genres: ['Crime', 'Drama', 'Thriller'],
-      synopsis: 'A chronicled look at the criminal exploits of Colombian drug lord Pablo Escobar, as well as the many other drug kingpins who plagued the country through the years.',
-      posterUrl: 'https://images.unsplash.com/photo-1560759226-14da22a643ef?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?auto=format&fit=crop&q=80',
-      quality: 'HD',
-      type: 'series'
-    },
-    {
-      id: 8,
-      title: 'The Revenant',
-      year: 2015,
-      rating: 8.0,
-      genres: ['Action', 'Adventure', 'Drama'],
-      synopsis: 'A frontiersman on a fur trading expedition in the 1820s fights for survival after being mauled by a bear and left for dead by members of his own hunting team.',
-      posterUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
-      backdropUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80',
-      quality: '4K',
-      type: 'movie'
-    }
-  ],
+  movies: [],
   filteredMovies: [],
   activeTab: 'movie',
   filters: {
@@ -164,6 +68,7 @@ export const useStore = create<StoreState>((set, get) => ({
   cookieConsent: null,
   latestMovies: [],
   topRatedMovies: [],
+  isLoading: true,
   
   setActiveTab: (tab) => set({ activeTab: tab }),
   
@@ -218,7 +123,19 @@ export const useStore = create<StoreState>((set, get) => ({
       likes: movie.likes || 0,
     };
     
-    const updatedMovies = [newMovie, ...state.movies];
+    // Check if the movie already exists in the store (by ID)
+    const existingIndex = state.movies.findIndex(m => m.id === movie.id);
+    let updatedMovies = [...state.movies];
+    
+    if (existingIndex >= 0) {
+      // Replace existing movie
+      updatedMovies[existingIndex] = newMovie;
+      console.log("Updated existing movie in store");
+    } else {
+      // Add new movie
+      updatedMovies = [newMovie, ...state.movies];
+      console.log("Added new movie to store");
+    }
     
     setTimeout(() => {
       console.log("Store: Re-applying filters after adding movie");
@@ -337,6 +254,7 @@ export const useStore = create<StoreState>((set, get) => ({
   
   fetchMoviesFromSupabase: async () => {
     try {
+      set({ isLoading: true });
       console.log("Fetching movies from Supabase...");
       const { data, error } = await supabase
         .from('movies')
@@ -344,6 +262,7 @@ export const useStore = create<StoreState>((set, get) => ({
         
       if (error) {
         console.error("Error fetching movies:", error);
+        set({ isLoading: false });
         return;
       }
       
@@ -369,7 +288,7 @@ export const useStore = create<StoreState>((set, get) => ({
         }));
         
         console.log("Transformed movies:", transformedMovies);
-        set({ movies: transformedMovies });
+        set({ movies: transformedMovies, isLoading: false });
         
         // Apply filters and update categories right away
         setTimeout(() => {
@@ -378,9 +297,11 @@ export const useStore = create<StoreState>((set, get) => ({
         }, 0);
       } else {
         console.log("No movies found in Supabase");
+        set({ isLoading: false });
       }
     } catch (err) {
       console.error("Failed to fetch movies:", err);
+      set({ isLoading: false });
     }
   },
   

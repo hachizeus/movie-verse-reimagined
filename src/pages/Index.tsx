@@ -15,7 +15,16 @@ import { useLocation } from "react-router-dom";
 
 const Index = () => {
   const location = useLocation();
-  const { movies, filteredMovies, latestMovies, topRatedMovies, applyFilters, updateMovieCategories, fetchMoviesFromSupabase } = useStore();
+  const { 
+    movies, 
+    filteredMovies, 
+    latestMovies, 
+    topRatedMovies, 
+    applyFilters, 
+    updateMovieCategories, 
+    fetchMoviesFromSupabase,
+    isLoading 
+  } = useStore();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareModalDismissCount, setShareModalDismissCount] = useState(() => {
@@ -24,7 +33,6 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const footerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
   
   // Calculate total pages based on filtered movies
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
@@ -43,16 +51,13 @@ const Index = () => {
   // Fetch movies whenever the component mounts or location changes
   useEffect(() => {
     console.log("Index: Fetching movies from Supabase");
-    setIsLoading(true);
     fetchMoviesFromSupabase()
       .then(() => {
         applyFilters();
         updateMovieCategories();
-        setIsLoading(false);
       })
       .catch(error => {
         console.error("Error fetching movies:", error);
-        setIsLoading(false);
       });
   }, [fetchMoviesFromSupabase, applyFilters, updateMovieCategories, location]);
   
