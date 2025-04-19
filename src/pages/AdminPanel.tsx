@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ const AdminPanel = () => {
     year: "",
     genres: "",
     quality: "HD",
-    type: "movie",
+    type: "movie" as ContentType,
     poster_url: "",
     backdrop_url: "",
     trailer_url: "",
@@ -57,7 +58,7 @@ const AdminPanel = () => {
         genres: genresArray,
         year: parseInt(formData.year),
         is_featured: true,
-        type: formData.type as ContentType
+        type: formData.type
       });
       
       const { data: movieData, error: movieError } = await supabase.rpc(
@@ -85,6 +86,7 @@ const AdminPanel = () => {
       
       console.log("Movie added successfully with ID:", contentId);
 
+      // Send notifications
       const { error: notifyError } = await supabase.rpc(
         'notify_all_users', 
         {
@@ -99,6 +101,7 @@ const AdminPanel = () => {
         console.error("Error sending notifications:", notifyError);
       }
 
+      // Construct the new movie object
       const newMovie = {
         id: contentId,
         title: formData.title,
@@ -110,7 +113,7 @@ const AdminPanel = () => {
         backdropUrl: formData.backdrop_url,
         quality: formData.quality as 'HD' | '4K' | 'UHD',
         isFeatured: true,
-        type: formData.type as ContentType,
+        type: formData.type,
         likes: 0,
         rating: 7.0,
         trailer_url: formData.trailer_url,
@@ -118,8 +121,10 @@ const AdminPanel = () => {
       
       console.log("Adding movie to store:", newMovie);
       
+      // Add movie to store
       addMovie(newMovie);
       
+      // Fetch all movies again to ensure everything is in sync
       await fetchMoviesFromSupabase();
 
       toast({
@@ -127,18 +132,20 @@ const AdminPanel = () => {
         description: `${formData.type === 'movie' ? 'Movie' : 'Series'} added successfully`,
       });
 
+      // Reset form
       setFormData({
         title: "",
         description: "",
         year: "",
         genres: "",
         quality: "HD",
-        type: "movie",
+        type: "movie" as ContentType,
         poster_url: "",
         backdrop_url: "",
         trailer_url: "",
       });
       
+      // Navigate back to home
       navigate('/');
     } catch (error) {
       console.error("Error in submission:", error);

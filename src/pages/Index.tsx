@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
@@ -23,6 +24,7 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const footerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Calculate total pages based on filtered movies
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
@@ -41,10 +43,17 @@ const Index = () => {
   // Fetch movies whenever the component mounts or location changes
   useEffect(() => {
     console.log("Index: Fetching movies from Supabase");
-    fetchMoviesFromSupabase().then(() => {
-      applyFilters();
-      updateMovieCategories();
-    });
+    setIsLoading(true);
+    fetchMoviesFromSupabase()
+      .then(() => {
+        applyFilters();
+        updateMovieCategories();
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching movies:", error);
+        setIsLoading(false);
+      });
   }, [fetchMoviesFromSupabase, applyFilters, updateMovieCategories, location]);
   
   // Reset to page 1 when filters change
@@ -92,18 +101,26 @@ const Index = () => {
       <FilterSection />
       
       <div className="container mx-auto px-4 md:px-6 py-8">
-        <MovieCarousel title="Latest Posted Movies" movies={latestMovies} />
-        <MovieCarousel title="Most Rated Movies" movies={topRatedMovies} />
-        
-        <h2 className="text-2xl font-bold mb-4 mt-12">All Movies</h2>
-        <MovieGrid movies={currentMovies} />
-        
-        {filteredMovies.length > itemsPerPage && (
-          <MoviePagination 
-            currentPage={currentPage} 
-            totalPages={totalPages} 
-            onPageChange={handlePageChange} 
-          />
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-netflix-lightgray">Loading movies...</p>
+          </div>
+        ) : (
+          <>
+            <MovieCarousel title="Latest Posted Movies" movies={latestMovies} />
+            <MovieCarousel title="Most Rated Movies" movies={topRatedMovies} />
+            
+            <h2 className="text-2xl font-bold mb-4 mt-12">All Movies</h2>
+            <MovieGrid movies={currentMovies} />
+            
+            {filteredMovies.length > itemsPerPage && (
+              <MoviePagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={handlePageChange} 
+              />
+            )}
+          </>
         )}
       </div>
       

@@ -368,7 +368,10 @@ export const useStore = create<StoreState>((set, get) => ({
           trailer_url: movie.trailer_url || '',
         }));
         
+        console.log("Transformed movies:", transformedMovies);
         set({ movies: transformedMovies });
+        
+        // Apply filters and update categories right away
         setTimeout(() => {
           get().applyFilters();
           get().updateMovieCategories();
@@ -389,6 +392,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
 // Initialize by fetching movies from Supabase
 const initializeStore = async () => {
+  console.log("Initializing store and fetching movies...");
   await useStore.getState().fetchMoviesFromSupabase();
   
   // Initialize movie categories and apply filters
