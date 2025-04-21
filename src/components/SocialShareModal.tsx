@@ -42,6 +42,7 @@ const SocialShareModal = ({ open, onOpenChange }: SocialShareModalProps) => {
     }
   }, [timeLeft, onOpenChange]);
   
+  // Ensure we're using the full URL including the current path
   const shareUrl = window.location.href;
   
   const handleCopyLink = () => {
