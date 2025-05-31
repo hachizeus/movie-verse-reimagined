@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore, Genre, ContentType } from "@/store/store";
 import ImageUploader from "@/components/ImageUploader";
-import { ArrowLeft } from "lucide-react";
+import UserManagement from "@/components/UserManagement";
+import { ArrowLeft, Plus, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -176,7 +177,7 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-netflix-black text-white p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center">
           <button 
             onClick={() => navigate(-1)} 
@@ -187,83 +188,102 @@ const AdminPanel = () => {
           <h1 className="text-3xl font-bold">Admin Panel</h1>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder="Title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-              required
-            />
-            <Input
-              placeholder="Year"
-              type="number"
-              value={formData.year}
-              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-            />
-            <Input
-              placeholder="Genres (comma-separated)"
-              value={formData.genres}
-              onChange={(e) => setFormData({ ...formData, genres: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-              required
-            />
-            <select
-              value={formData.quality}
-              onChange={(e) => setFormData({ ...formData, quality: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
-            >
-              <option value="HD">HD</option>
-              <option value="4K">4K</option>
-              <option value="UHD">UHD</option>
-            </select>
-            
-            <Input
-              placeholder="Trailer URL"
-              value={formData.trailer_url}
-              onChange={(e) => setFormData({ ...formData, trailer_url: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray"
-            />
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
-            >
-              <option value="movie">Movie</option>
-              <option value="series">Series</option>
-            </select>
-          </div>
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-netflix-darkgray">
+            <TabsTrigger value="content" className="data-[state=active]:bg-netflix-red">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Content
+            </TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-netflix-red">
+              <Users className="h-4 w-4 mr-2" />
+              Manage Users
+            </TabsTrigger>
+          </TabsList>
           
-          <Textarea
-            placeholder="Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="bg-netflix-darkgray/50 border-netflix-darkgray min-h-[100px]"
-            required
-          />
+          <TabsContent value="content" className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  placeholder="Title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray"
+                  required
+                />
+                <Input
+                  placeholder="Year"
+                  type="number"
+                  value={formData.year}
+                  onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray"
+                />
+                <Input
+                  placeholder="Genres (comma-separated)"
+                  value={formData.genres}
+                  onChange={(e) => setFormData({ ...formData, genres: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray"
+                  required
+                />
+                <select
+                  value={formData.quality}
+                  onChange={(e) => setFormData({ ...formData, quality: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
+                >
+                  <option value="HD">HD</option>
+                  <option value="4K">4K</option>
+                  <option value="UHD">UHD</option>
+                </select>
+                
+                <Input
+                  placeholder="Trailer URL"
+                  value={formData.trailer_url}
+                  onChange={(e) => setFormData({ ...formData, trailer_url: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray"
+                />
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="bg-netflix-darkgray/50 border-netflix-darkgray rounded-md p-2"
+                >
+                  <option value="movie">Movie</option>
+                  <option value="series">Series</option>
+                </select>
+              </div>
+              
+              <Textarea
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="bg-netflix-darkgray/50 border-netflix-darkgray min-h-[100px]"
+                required
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageUploader 
+                  onImageUploaded={handlePosterUploaded}
+                  label="Poster Image"
+                  bucket="movieverse"
+                  folderPath="posters"
+                />
+                
+                <ImageUploader 
+                  onImageUploaded={handleBackdropUploaded}
+                  label="Backdrop Image"
+                  bucket="movieverse"
+                  folderPath="backdrops"
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Adding..." : `Add ${formData.type === 'movie' ? 'Movie' : 'Series'}`}
+              </Button>
+            </form>
+          </TabsContent>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ImageUploader 
-              onImageUploaded={handlePosterUploaded}
-              label="Poster Image"
-              bucket="movieverse"
-              folderPath="posters"
-            />
-            
-            <ImageUploader 
-              onImageUploaded={handleBackdropUploaded}
-              label="Backdrop Image"
-              bucket="movieverse"
-              folderPath="backdrops"
-            />
-          </div>
-          
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Adding..." : `Add ${formData.type === 'movie' ? 'Movie' : 'Series'}`}
-          </Button>
-        </form>
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
